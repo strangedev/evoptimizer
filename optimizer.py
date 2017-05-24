@@ -111,3 +111,7 @@ def mutate(arguments: Dict[str, float]):
 
 	return mutated_args
 
+
+def generate_gen_0(size: int, parameters_limits: Dict[str, Tuple[float, float]]):
+	return [{name: random.uniform(b[0], b[1]) for name, b in parameters_limits} for i in range(size)]
+

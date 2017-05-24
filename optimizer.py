@@ -41,18 +41,22 @@ parameters_limits = {
 	"c2": (0.05E-15, 2E-15)
 }
 
-optimization_priority = [
-	"k",
-	"BW",
-	"wp"
-]
+optimization_priority = {
+	"k": .5,
+	"BW": .3,
+	"wp": .2
+}
+
+mutation_units = {name: (b[0]-b[1])/1000 for name, b in parameters_limits}
+
+mutation_probability = .15
 
 
-def simulate(functions, function_names, arguments):
+def simulate(functions, arguments):
 
 	results = dict({})
 
-	for fun, name in zip(functions, function_names):
+	for name, fun in functions.items():
 
 		needed_args = inspect.getargspec(fun)
 		args_to_pass = [a for a in arguments if a in needed_args]
@@ -62,9 +66,48 @@ def simulate(functions, function_names, arguments):
 	return results
 
 
-def fitness(results, wanted_results):
+def fitness(results: Dict[str, float], wanted_result, optimization_priority):
 
-	for name, _, goals in wanted_results:
-		pass
+	fitnesses = dict({})
 
+	for name, _, goals in wanted_result:
+
+		result = results[name]
+
+		opt = goals["optimal"]
+		lower_barrier = goals["allowance"][0]
+		upper_barrier = goals["allowance"][1]
+		max_qdist = max([lower_barrier, upper_barrier]) ** 2
+
+		dist = opt - result
+		q_dist = dist ** 2
+
+		if dist < lower_barrier:
+			fitnesses[name] = 0
+			continue
+
+		if dist > upper_barrier:
+			fitnesses[name] = 0
+			continue
+
+		fitnesses[name] = (max_qdist - q_dist) / max_qdist
+
+	fitnesses = {optimization_priority[name] * f for name, f in fitnesses.items}
+	fitness = sum(fitness.values()) / len(fitnesses)
+
+	return fitness
+
+
+def mutate(arguments: Dict[str, float]):
+
+	mutated_args = dict({})
+
+	for name, value in arguments.keys():
+		if random.uniform(0, 1) <= mutation_probability:
+			if random.choice([True, False]):
+				mutated_args[name] = value + mutation_units[name]
+			else:
+				mutated_args[name] = value - mutation_units[name]
+
+	return mutated_args
 

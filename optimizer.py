@@ -1,5 +1,8 @@
 import math
 import inspect
+import random
+
+from typing import Dict, Tuple, Callable, List
 
 
 def wp(g1=0, g7=0, g8=0, c1=0):
@@ -9,7 +12,8 @@ def Q(g1=0, g2=0, g6=0, g7=0, g8=0, c1=0, c2=0):
 	return ((g6 * c2) / (g2 * g7)) * math.sqrt((g1 * g8) / (g7 * c1))
 
 def k(g1=0, g2=0, g4=0, g6=0, g7=0, g8=0, c1=0, c2=0):
-	return ((g2 * g4) / (g6 * g * c2)) * (Q(g1, g2, g6, g7, g8, c1, c2) / wp(g1, g7, g8, c1))
+	# return ((g2 * g4) / (g6 * c2)) * (Q(g1, g2, g6, g7, g8, c1, c2) / wp(g1, g7, g8, c1))
+	return ((g4) / (g7)) * (Q(g1, g2, g6, g7, g8, c1, c2) / wp(g1, g7, g8, c1))
 
 def BW(g1=0, g2=0, g6=0, g7=0, g8=0, c1=0, c2=0):
 	return wp(g1, g7, g8, c1) / Q(g1, g2, g6, g7, g8, c1, c2)
@@ -96,7 +100,7 @@ def fitness(results: Dict[str, float], wanted_result, optimization_priority):
 		fitnesses[name] = (max_qdist - q_dist) / max_qdist
 
 	fitnesses = {optimization_priority[name] * f for name, f in fitnesses.items}
-	fitness = sum(fitness.values()) / len(fitnesses)
+	fitness = sum(fitnesses.values()) / len(fitnesses)
 
 	return fitness
 
@@ -152,7 +156,7 @@ def main(wanted_results :List[Dict[str, Tuple[Callable[Dict[str, any]], Dict[str
        	gen_fitnesses = []
 
         for agrs, results in gen_results:
-        	gen_fitnesses.append((args, results, fitness(result, wanted_results, optimization_priority)))
+        	gen_fitnesses.append((args, results, fitness(results, wanted_results, optimization_priority)))
 
         gen_fitnesses = sorted(gen_fitnesses, key=lambda t: t[2])
 
